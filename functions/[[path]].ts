@@ -13,12 +13,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return new Response("NEW_DOMAIN environment variable is not set.", { status: 500 });
   }
 
-  // Ensure karein ki domain ke end me slash ka issue na ho
-  const targetDomain = env.NEW_DOMAIN.endsWith('/') 
-    ? env.NEW_DOMAIN.slice(0, -1) 
-    : env.NEW_DOMAIN;
+  let targetDomain = env.NEW_DOMAIN;
 
-  // Destination URL construct karein (path aur search params ke sath)
+  // 1. Check karein ki protocol (http/https) hai ya nahi, nahi to https:// lagayein
+  if (!targetDomain.startsWith("http://") && !targetDomain.startsWith("https://")) {
+    targetDomain = `https://${targetDomain}`;
+  }
+
+  // 2. Domain ke end se slash remove karein (agar hai to) taki double slash na bane
+  if (targetDomain.endsWith('/')) {
+    targetDomain = targetDomain.slice(0, -1);
+  }
+
+  // Destination URL construct karein
   const destination = `${targetDomain}${url.pathname}${url.search}`;
 
   // 307 Temporary Redirect return karein
